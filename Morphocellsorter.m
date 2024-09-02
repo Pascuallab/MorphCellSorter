@@ -5,11 +5,17 @@ close all
 %% Import data table
 extension = '*.tif*';
 [xlsFile, xlsPath] = uigetfile('*.xlsx', 'Select a table');                 % Select table containing the morphological parameters
-allParameters = readtable(fullfile(xlsPath, xlsFile));                      % Import the table
- 
+allParameters = readtable(fullfile(xlsPath, xlsFile));  % Importthe table
+
+allParameters = sortrows(allParameters,1,"ascend"); % sort rows in chrono
 
 %  saving_path='E:\Programmes Matlab\figures_article0424\table1\Embryo\0.9';
-X = table2array(allParameters(:, 2:end));                                   % Extract all parameters except image names
+X = table2array(allParameters(:, 2:end));  % Extract all parameters except image names
+
+fileNames = allParameters{:,1};
+%fileNames = allParameters{(X(:,1) + 6.66*X(:,2)-177)>0, 1};
+%X = X((X(:,1) + 6.66*X(:,2)-177)>0, 3:end); % to remove CellArea < 100 and CellArea and SomaAre columns
+
 
 Label_variable = {'Peri2/Area',	'Circ'	'Roundness', 'RamifIndex',...	    
     'Solidity',	'Convexity', 'CHRadiiRatio', 'SpanRatio',...	
@@ -55,6 +61,12 @@ title('Correlation Circle');
 xlabel('PC1');
 ylabel('PC2');
 
+
+
+close;
+
+
+
 %---------------------------------------------------------------------------
 
 figure();
@@ -84,7 +96,7 @@ else
 end
 
 plot(1:20, wpn, 'm');
- 
+
 %----------------------------------------------------------------------
  
 M1 = X(:, wp(1:var_max, 1));
@@ -124,6 +136,11 @@ ylabel('Andrews Score');
 text(teta + 5, 3 * cols / 4, ...
     ['var_{max} \rightarrow \theta=' num2str(round(teta)) '^o']);
 
+
+close;
+
+
+
 andrewsValuesMaxVar = S1(:, t_max);
 table_rank = table(rank);
 vars = {'rank', 'score'};
@@ -132,12 +149,42 @@ vars = {'rank', 'score'};
 % uit = uitable(fig, 'Data', rank, 'columnName', vars, 'Units', ...
 %               'normalized', 'position', [0 0 1 1]);
 % uit.FontSize = 10;
+
 ranking = rank(:, 1);
+
+fileNames = sortrows(fileNames,1,'ascend');
+microgliaIdsSorted = fileNames(ranking)';
 
 %% Results of the ranking
 answerFigures = menu(['Do you want to display the rankings and/or ' ...
                       'distribution histograms of Andrews Scores?'], ...
                       'Rankings', 'Histograms', 'Both', 'None');
+
+% Number and name of conditions
+answerCondition = inputdlg({['Please enter the number of ' ...
+                             'conditions:']}, ...
+                             'Number of conditions', [1 35]);
+
+nbConditions = str2num(answerCondition{1});
+clear answerCondition
+
+for t = 1:nbConditions
+    nameCond{1, t} = ['Name Condition', num2str(t)];
+end
+
+nameConditions = inputdlg(nameCond, 'Conditions name', [1 35]);
+classes = zeros(1, rows);
+
+for t = 1:nbConditions
+    findPattern = contains(fileNames, ...
+                           nameConditions{t, 1});
+
+    findidx = find(findPattern);
+    classes(findidx) = t;
+    % clear findPattern findidx
+end
+
+classesIdsSorted = classes(ranking);
 
 if answerFigures < 4                                                        % if answer is not 'None'
     answerDisplay = questdlg(['Do you want to display the results ' ...
@@ -146,38 +193,14 @@ if answerFigures < 4                                                        % if
                               'Yes', 'No', 'Yes');
 
     if strcmpi('Yes', answerDisplay)
-        % Number and name of conditions
-        answerCondition = inputdlg({['Please enter the number of ' ...
-                                     'conditions:']}, ...
-                                     'Number of conditions', [1 35]);
-
-        nbConditions = str2num(answerCondition{1});
-        clear answerCondition
-
-        for t = 1:nbConditions
-            nameCond{1, t} = ['Name Condition', num2str(t)];
-        end
-
-        nameConditions = inputdlg(nameCond, 'Conditions name', [1 35]);
-        classes = zeros(1, rows);
-
-        for t = 1:nbConditions
-            findPattern = contains(allParameters{:, 1}, ...
-                                   nameConditions{t, 1});
-
-            findidx = find(findPattern);
-            classes(findidx) = t;
-            % clear findPattern findidx
-        end
-
-        classesIdsSorted = zeros(rows, 1);
-
-        for i = 1:rows
-            numero(i, :) = find(allParameters{:, 1} ...
-                                == microgliaIdsSorted(:, i));
-        
-            classesIdsSorted(i, 1) = classes(:, numero(i, :));
-        end
+        % classesIdsSorted = zeros(rows, 1);
+        % 
+        % for i = 1:rows
+        %     numero(i, :) = find(allParameters{:, 1} ...
+        %                         == microgliaIdsSorted(:, i));
+        % 
+        %     classesIdsSorted(i, 1) = classes(:, numero(i, :));
+        % end
 
         % Selection of the display colors
         defaultColors = [0.4    0.7608 0.6470; 
@@ -190,7 +213,7 @@ if answerFigures < 4                                                        % if
                          1      1      1];
 
         if nbConditions <= 8
-            answerColors = questdlg(['Do you want to chose the display ' ...
+            answerColors = questdlg(['Do you want to choose the display ' ...
                                      'colors for your conditions?'], ...
                                      'Color display', 'Yes', 'No', 'No');
             
@@ -218,12 +241,13 @@ if answerFigures < 4                                                        % if
             path = uigetdir('', ['Select the folder containing ' ...
                             'the binarized individualized ' ...
                             '300*300pi microglia']);
-            [files, nFiles, fileNo, ...
-                fileNames, images] = Open_Microglia_Images(path, extension);
+            % [~, ~, ~, ...
+            %     fileNames, ~] = Open_Microglia_Images(path, extension);
 
-            filePattern = fullfile(path, extension);
-            theFiles = dir(filePattern);
-            microgliaIdsSorted = fileNames(ranking);                        % Get microglia ranking with sort
+            %%filePattern = fullfile(path, extension);
+            %%theFiles = dir(filePattern);
+            % fileNames = sortrows(fileNames,1,'ascend');
+            % microgliaIdsSorted = fileNames(ranking);                        % Get microglia ranking with sort
             DisplayImages(path, extension, colors, microgliaIdsSorted', ...
                           classesIdsSorted)
         end
@@ -266,7 +290,7 @@ if answerFigures < 4                                                        % if
 
             nbins = max(1, nbins);
 
-            BE = linspace(minC, maxC, 20);
+            BE = linspace(minC, maxC, nbins);
 
             for t = 1:nbConditions
                 bincounts(t).R = histcounts(groupList(t).R, BE, ...
@@ -280,12 +304,21 @@ if answerFigures < 4                                                        % if
 
             figure()
             % set(gcf, 'Position', get(0, 'Screensize'));
+
+            % Compute the max of all distributions
+            maxdistrib = 0; 
+            for t = 1:nbConditions
+                if max(bincounts(t).R) > maxdistrib
+                    maxdistrib = max(bincounts(t).R);
+                end
+            end
+
             for t = 1:nbConditions
                 subplot(nbRows, nbCols, t)
                 histogram('BinCounts', bincounts(t).R, 'FaceColor', ...
                           colors(t, :), 'Facealpha', 0.4, 'BinEdges', BE)
 
-                ylim([0,1])
+                ylim([0, min(1.25*maxdistrib, 1)])
                 legend(nameConditions{t, 1})
                 xlabel('Andrews score', 'FontSize', 15)
                 ylabel('Normalized number of microglia', 'FontSize', 15)
@@ -311,12 +344,13 @@ if answerFigures < 4                                                        % if
                             'binarized individualized 300*300pi' ...
                             ' microglia']);
 
-            [files, nFiles, fileNo, ...
-                fileNames, images] = Open_Microglia_Images(path, extension);
-
-            filePattern = fullfile(path, extension);
-            theFiles = dir(filePattern);
-            microgliaIdsSorted = fileNames(ranking);                          % Get microglia ranking with sort
+            % [files, nFiles, fileNo, ...
+            %     fileNames, images] = Open_Microglia_Images(path, extension);
+% 
+            %%filePattern = fullfile(path, extension);
+            %%theFiles = dir(filePattern);
+            % fileNames = sortrows(fileNames,1,'ascend');
+            % microgliaIdsSorted = fileNames(ranking);                          % Get microglia ranking with sort
             DisplayImages(path, extension, [], microgliaIdsSorted', [])
         end
         
@@ -359,10 +393,12 @@ end
 %% Save figures & ranking
 % Save the ranking
 saving_path = uigetdir('','Select the folder for saving the ranking');
-tableHeader = {'rank', 'microglia'};
+tableHeader = {'rank', 'andrews score', 'groups', 'microglia'};
 
 % Set table values
 classement = table((1:size(microgliaIdsSorted, 2))', ...
+                    sortrows(andrewsValuesMaxVar, 1, 'ascend'), ...
+                    nameConditions(classes(ranking)), ...
                     microgliaIdsSorted', 'VariableNames', tableHeader);
 
 % Delete old output file if exists and save file
