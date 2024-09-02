@@ -7,14 +7,14 @@ extension = '*.tif*';
 [xlsFile, xlsPath] = uigetfile('*.xlsx', 'Select a table');                 % Select table containing the morphological parameters
 allParameters = readtable(fullfile(xlsPath, xlsFile));  % Importthe table
 
-allParameters = sortrows(allParameters,1,"ascend"); % sort rows in chrono
+allParameters = sortrows(allParameters,1,"ascend");                         % sort rows in chrono
 
 %  saving_path='E:\Programmes Matlab\figures_article0424\table1\Embryo\0.9';
-X = table2array(allParameters(:, 2:end));  % Extract all parameters except image names
+X = table2array(allParameters(:, 2:end));                                   % Extract all parameters except image names
 
 fileNames = allParameters{:,1};
 %fileNames = allParameters{(X(:,1) + 6.66*X(:,2)-177)>0, 1};
-%X = X((X(:,1) + 6.66*X(:,2)-177)>0, 3:end); % to remove CellArea < 100 and CellArea and SomaAre columns
+%X = X((X(:,1) + 6.66*X(:,2)-177)>0, 3:end);                                % to remove CellArea < 100 and CellArea and SomaAre columns
 
 
 Label_variable = {'Peri2/Area',	'Circ'	'Roundness', 'RamifIndex',...	    
