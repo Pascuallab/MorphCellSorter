@@ -13,11 +13,34 @@ path = uigetdir('', ['Select the folder containing the binarized ' ...
 filePattern = fullfile(path, extension);
 theFiles = dir(filePattern);
 
+%% Dectection of bad segmentation images
+id_wrong = [];
+for n = 1:nFiles
+    X = images(n).R(:, :, 1);
+    borders = sum(X(:,1)) + sum(X(:,end)) ...
+            + sum(X(1,:)) + sum(X(end,:));
+    total = sum(X(:));
+    if borders ~= 0 || total < 256
+        id_wrong = [id_wrong, n];
+    end
+end
+
+if  ~isempty(id_wrong)
+    disp("The following images are not correct !")
+    disp(fileNames(id_wrong)')
+    return
+else
+    disp("All images are correct !")
+end
+
 %% Image resolution
 answerResolution = inputdlg({['Please enter the value of 1 pixel ' ...
                             '(in micrometers):']}, 'Resolution', [1 35]);
 resolution = str2num(answerResolution{1});
-    
+
+%% Save Path
+savePath = uigetdir('','Select the folder for saving the results tables');
+
 %% Check Cell body & Skeleton
 answerCheck = questdlg(['Do you want to check the detection of the ' ...
                         'cell bodies and skeleton ? it will make the ' ...
@@ -65,16 +88,16 @@ linearity = zeros(1, nFiles);
 inertiaCell = zeros(1, nFiles);
 lacunaritySlope = zeros(1, nFiles);
 lacunarityMean = zeros(1, nFiles); 
-    
+
 %% Computation of the morphological parameters
-for n = 906:nFiles
+for n = 1:nFiles
     disp(n)
     X = images(n).R(:, :, 1);
     X = double(X);
     X = X / max(X(:));                                                      % binarized microglia image
     
     [somaArea(n), Gx, Gy, soma] = Cell_Body(X, resolution);
-     cellArea(n)=sum(X(:))*resolution*resolution;%Surface cellule
+     cellArea(n)=sum(X(:))*resolution*resolution;                           % Surface cellule
     processesArea(n) = cellArea(n) - somaArea(n);
     
     [perimAreaRatio(n), cellPerimeter(n)] ... 
@@ -88,7 +111,7 @@ for n = 906:nFiles
         = (cellPerimeter(n) / cellArea(n)) / (2 * sqrt(pi / cellArea(n)));
 
     [convexHullArea(n), convexHullPerim(n), convexity(n), solidity(n), ...
-        convHullCircularity(n), convHullRadii(n), convHullSpanRatio(n)] ...
+     convHullCircularity(n), convHullRadii(n), convHullSpanRatio(n)] ...
         = convexhull(X, cellPerimeter(n), resolution);
 
     processesArea(n) = cellArea(n) - somaArea(n);
@@ -162,7 +185,8 @@ for n = 906:nFiles
 
         f = figure();
         imshow(im)
-        FigName = ['cell' num2str(n)];
+        % FigName = ['cell' num2str(n)];
+        FigName = fileNames{n};
         saveas(f, fullfile(saving_image_path, [FigName '.png']));
         close(f)
     end
@@ -170,7 +194,7 @@ end
 
 %% Save data in xls file
 % Set parameter names
-savePath = uigetdir('','Select the folder for saving the results tables');
+
 header = {'microglia', 'CellArea', 'CellPerimeter', 'ConvexHullPerimeter', ...
         'ConvexHullArea', 'ProcessesArea', 'SomaArea', 'NbBranchpointsSkeleton', ...
         'NbEndpointsSkeleton', 'ShollTotalIntersections', 'ShollcriticalRadius', ...
@@ -204,7 +228,7 @@ writetable(allParameters, [savePath './Parameters_MorphoCellSorter.xlsx'], ...
            'WriteRowNames', true);
 
 
-
+%% TABLE MCS
 allParameters_forMCS = table(perimAreaRatio', circularity', ...
                 roundFactor', ramificationIndex', solidity', convexity', ...
                 convHullRadii', convHullSpanRatio', convHullCircularity', ...
