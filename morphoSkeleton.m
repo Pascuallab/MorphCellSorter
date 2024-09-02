@@ -70,7 +70,12 @@ function [processSkeleton, nbBranchpoints, nbEndpoints, ratioSkeletonProcessArea
     nbBranchpoints = sum(bp(:));                                            % compute number of branching points
     
     lengthSkel = sum(processSkeleton(:)) * resolution;                      % compute length of processes in micrometers
-    ratioSkeletonProcessArea = lengthSkel ^ 2 / processArea;                % compute ratio between skeleton length and processes area
+    
+    if processArea > 0
+        ratioSkeletonProcessArea = lengthSkel ^ 2 / processArea;                % compute ratio between skeleton length and processes area
+    else
+        ratioSkeletonProcessArea = 0;
+    end
 
     if nbBranchpoints > 0                                                   % if branching points were detected
         ratioEndpointsBranchpoints = nbEndpoints / nbBranchpoints;          % compute ratio between endpoints and branchpoints
