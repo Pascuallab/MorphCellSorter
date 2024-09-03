@@ -31,14 +31,15 @@ This soft has been coded for Matlab R2023b but should work well with earlier ver
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Once all files are in your Matlab PATH, run Morphocellmeter.m to analyze the morphology of a set of 2D binarized cell masks. Then, run Morphocellsorter.m to sort those cells based on their morphology.
+Once all files are in your Matlab PATH, run Morphocellmeter.m to analyze the morphology of a set of 2D binarized cell masks. 
+Then, run Morphocellsorter.m to sort those cells based on their morphology.
 
 <!--_For more examples, please refer to the [Documentation](https://example.com)_-->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-<!-- ROADMAP -->
+<!-- ROADMAP 
 ## Roadmap
 
 - [ ] Feature 1
@@ -48,7 +49,7 @@ Once all files are in your Matlab PATH, run Morphocellmeter.m to analyze the mor
 
 See the [open issues](https://github.com/Pascuallab/MorphCellSorter/issues) for a full list of proposed features (and known issues).
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 
 
@@ -88,7 +89,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+<!--Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com-->
 
 Project Link: [https://github.com/Pascuallab/MorphCellSorter](https://github.com/Pascuallab/MorphCellSorter)
 
